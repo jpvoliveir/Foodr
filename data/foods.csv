@@ -1,0 +1,21 @@
+id,name,category,calories,protein,carbohydrates,fat,is_vegetarian,is_vegan,is_gluten_free
+1,Peito de Frango,Proteins,165,31.0,0.0,3.6,0,0,1
+2,Arroz Branco Cozido,Carbs,130,2.7,28.0,0.3,1,1,1
+3,Batata Doce Cozida,Carbs,86,1.6,20.0,0.1,1,1,1
+4,Salmao Grelhado,Proteins,208,20.0,0.0,13.0,0,0,1
+5,Ovo Cozido Inteiro,Proteins,155,13.0,1.1,11.0,1,0,1
+6,Brocolis Cozido,Vegetables,34,2.8,7.0,0.4,1,1,1
+7,Aveia em Flocos,Carbs,389,16.9,66.3,6.9,1,1,1
+8,Abacate,Fats,160,2.0,9.0,15.0,1,1,1
+9,Pasta de Amendoim,Fats,588,25.0,20.0,50.0,1,1,1
+10,Whey Protein,Proteins,390,80.0,6.0,6.0,1,0,1
+11,Banana,Fruits,89,1.1,22.8,0.3,1,1,1
+12,Maca,Fruits,52,0.3,13.8,0.2,1,1,1
+13,Azeite de Oliva,Fats,884,0.0,0.0,100.0,1,1,1
+14,Iogurte Grego Natural,Proteins,59,10.0,3.6,0.4,1,0,1
+15,Lentilha Cozida,Proteins,116,9.0,20.0,0.4,1,1,1
+16,Tofu,Proteins,76,8.0,1.9,4.8,1,1,1
+17,Espinafre Cozido,Vegetables,23,2.9,3.6,0.4,1,1,1
+18,Quinoa Cozida,Carbs,120,4.4,21.3,1.9,1,1,1
+19,Amendoas,Fats,579,21.0,22.0,49.0,1,1,1
+20,Patinho Bovino Grelhado,Proteins,250,26.0,0.0,15.0,0,0,1
