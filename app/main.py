@@ -4,7 +4,7 @@ import os
 from fastapi import FastAPI
 from app.database import engine, Base, SessionLocal
 from app.models.food import Food
-from app.routes import users, recommendations
+from app.routes import users, recommendations, foods
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -51,6 +51,7 @@ app = FastAPI(
 
 # Registra os roteadores
 app.include_router(users.router)
+app.include_router(foods.router)
 app.include_router(recommendations.router)
 
 @app.get("/")

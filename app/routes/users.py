@@ -6,7 +6,7 @@ from app.services.metabolism import calculate_metabolism
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/", response_model=UserResponse, status_code=210)  # Standard status code or 201
+@router.post("/", response_model=UserResponse, status_code=201)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     # Create the database record using pydantic model dump
     db_user = User(

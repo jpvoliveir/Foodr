@@ -1,3 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+*.db
+.claude
+.code-review-graph
+check_db.py
