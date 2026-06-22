@@ -6,7 +6,6 @@ from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.database import Base, get_db
 
-# StaticPool forces all connections to share the same in-memory database
 engine = create_engine(
     "sqlite://",
     connect_args={"check_same_thread": False},
@@ -48,6 +47,7 @@ USER_PAYLOAD = {
     "activity_level": "moderate",
     "goal": "lose",
     "diet_preference": "any",
+    "gluten_free_preference": False,
 }
 
 FOOD_PAYLOAD = {
@@ -59,6 +59,18 @@ FOOD_PAYLOAD = {
     "fat": 3.6,
     "is_vegetarian": False,
     "is_vegan": False,
+    "is_gluten_free": True,
+}
+
+VEGAN_FOOD_PAYLOAD = {
+    "name": "Lentilha",
+    "category": "Legumes",
+    "calories": 116.0,
+    "protein": 9.0,
+    "carbohydrates": 20.0,
+    "fat": 0.4,
+    "is_vegetarian": True,
+    "is_vegan": True,
     "is_gluten_free": True,
 }
 
@@ -79,14 +91,16 @@ def test_create_user(client):
     data = r.json()
     assert data["name"] == USER_PAYLOAD["name"]
     assert data["id"] == 1
+    assert data["gluten_free_preference"] == False
 
 
 def test_get_user(client):
     client.post("/users/", json=USER_PAYLOAD)
     r = client.get("/users/1")
     assert r.status_code == 200
-    assert r.json()["profile"]["name"] == USER_PAYLOAD["name"]
-    assert "metabolism_targets" in r.json()
+    body = r.json()
+    assert body["profile"]["name"] == USER_PAYLOAD["name"]
+    assert "metabolism_targets" in body
 
 
 def test_get_user_not_found(client):
@@ -101,6 +115,13 @@ def test_update_user(client):
     data = r.json()
     assert data["goal"] == "gain"
     assert data["weight"] == 80.0
+
+
+def test_update_user_gluten_free(client):
+    client.post("/users/", json=USER_PAYLOAD)
+    r = client.put("/users/1", json={"gluten_free_preference": True})
+    assert r.status_code == 200
+    assert r.json()["gluten_free_preference"] == True
 
 
 def test_update_user_not_found(client):
@@ -135,6 +156,15 @@ def test_list_foods(client):
     r = client.get("/foods/")
     assert r.status_code == 200
     assert len(r.json()) == 1
+
+
+def test_list_foods_pagination(client):
+    client.post("/foods/", json=FOOD_PAYLOAD)
+    client.post("/foods/", json={**FOOD_PAYLOAD, "name": "Arroz"})
+    r = client.get("/foods/?skip=1&limit=1")
+    assert r.status_code == 200
+    assert len(r.json()) == 1
+    assert r.json()[0]["name"] == "Arroz"
 
 
 def test_get_food(client):
@@ -179,6 +209,30 @@ def test_recommendations_no_foods(client):
     assert r.status_code == 400
 
 
+def test_recommendations_vegan_filter(client):
+    vegan_user = {**USER_PAYLOAD, "diet_preference": "vegan"}
+    client.post("/users/", json=vegan_user)
+    client.post("/foods/", json=FOOD_PAYLOAD)       # não-vegano
+    client.post("/foods/", json=VEGAN_FOOD_PAYLOAD) # vegano
+    r = client.get("/recommendations/1")
+    assert r.status_code == 200
+    names = [item["food"]["name"] for item in r.json()["recommendations"]]
+    assert "Frango Grelhado" not in names
+    assert "Lentilha" in names
+
+
+def test_recommendations_gluten_free_filter(client):
+    gf_user = {**USER_PAYLOAD, "gluten_free_preference": True}
+    client.post("/users/", json=gf_user)
+    client.post("/foods/", json={**FOOD_PAYLOAD, "is_gluten_free": False, "name": "Pão"})
+    client.post("/foods/", json=VEGAN_FOOD_PAYLOAD)  # is_gluten_free=True
+    r = client.get("/recommendations/1")
+    assert r.status_code == 200
+    names = [item["food"]["name"] for item in r.json()["recommendations"]]
+    assert "Pão" not in names
+    assert "Lentilha" in names
+
+
 def test_direct_recommendations(client):
     client.post("/foods/", json=FOOD_PAYLOAD)
     r = client.get(
@@ -193,3 +247,20 @@ def test_direct_recommendations(client):
     body = r.json()
     assert "recommendations" in body
     assert len(body["recommendations"]) == 1
+
+
+def test_direct_recommendations_gluten_free(client):
+    client.post("/foods/", json={**FOOD_PAYLOAD, "is_gluten_free": False, "name": "Pão"})
+    client.post("/foods/", json=VEGAN_FOOD_PAYLOAD)
+    r = client.get(
+        "/recommendations/direct/run",
+        params={
+            "weight": 70, "height": 175, "age": 25,
+            "gender": "male", "activity_level": "moderate",
+            "goal": "lose", "gluten_free": True,
+        },
+    )
+    assert r.status_code == 200
+    names = [item["food"]["name"] for item in r.json()["recommendations"]]
+    assert "Pão" not in names
+    assert "Lentilha" in names
